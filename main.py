@@ -1,36 +1,36 @@
-from fastapi import FastApi
-
+from fastapi import FastAPI
 from pydantic import BaseModel
-
 import sqlite3
 
-app = FastApi()
+app = FastAPI()
 
 class Student(BaseModel):
-   id:int
-   name:str
-   grade:int
+    id: int
+    name: str
+    grade: int
 
-def setup_database ():
-   try:
-       conn = sqlite3.connect("students.db")
-       curser = conn.cursor()
-       curser.execute('''
-       CREATE TABLE IF NOT EXISTS students(
-       id INTEGER PRIMARY KEY AUTOINCREMENT,
-       name TEXT NOT NULL,
-       grade INTEGER
-       )
-       ''')
-       conn.commit()
-   except sqlite3.Error as e:
-       print(e)
-       return {"error":"FIELED to fetch students"}
+def setup_database():
+    try:
+        conn = sqlite3.connect("students.db")
+        cursor = conn.cursor()
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS students(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        grade INTEGER
+        )
+        ''')
+        conn.commit()
+        conn.close()
+    except sqlite3.Error as e:
+        print(e)
+        # Adjust this part as it is not returning from a FastAPI endpoint
+        return {"error": "FAILED to setup database"}
 
 setup_database()
 
-@app.get("students")
-async def getStudents():
+@app.get("/students")
+async def get_students():
     try:
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
@@ -38,45 +38,45 @@ async def getStudents():
         students = cursor.fetchall()
         conn.close()
         return students
-     except sqlite3.Error as e:
+    except sqlite3.Error as e:
         print(e)
-        return {"error":"FIELED to read students"}
+        return {"error": "FAILED to fetch students"}
 
-@app.post("students")
-async def addStudent(student:Student):
+@app.post("/students")
+async def add_student(student: Student):
     try:
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO students (name,grade) VALUES(?,?)",(student.name,student.grade))
+        cursor.execute("INSERT INTO students (name, grade) VALUES (?, ?)", (student.name, student.grade))
         conn.commit()
         conn.close()
-        return {"message":"student add congratiolation"}
+        return {"message": "Student added successfully"}
     except sqlite3.Error as e:
-        print(e) 
-        return {"error":"FIELED to add student"}
+        print(e)
+        return {"error": "FAILED to add student"}
 
-@app.put("students/{student_id}")
-async def update_students(student_id:int,student:Student):
+@app.put("/students/{student_id}")
+async def update_student(student_id: int, student: Student):
     try:
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
-        cursor.execute("UPDATE students SET name = ?,grade = ? WHERE id=?",(student.name,student.grade,student_id))
+        cursor.execute("UPDATE students SET name = ?, grade = ? WHERE id = ?", (student.name, student.grade, student_id))
         conn.commit()
         conn.close()
-        return {"message":"Update student congratolation"}
+        return {"message": "Student updated successfully"}
     except sqlite3.Error as e:
         print(e)
-        return {"error":"FIELED to update student"}
+        return {"error": "FAILED to update student"}
 
-@app.delete("students/{student_id}")
-async def delete_student(student_id:int):
-    try: 
+@app.delete("/students/{student_id}")
+async def delete_student(student_id: int):
+    try:
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM students WHERE id =?",(student_id))
+        cursor.execute("DELETE FROM students WHERE id = ?", (student_id,))
         conn.commit()
         conn.close()
-        return {"message":"delete student congratolation"}
+        return {"message": "Student deleted successfully"}
     except sqlite3.Error as e:
         print(e)
-        return {"error":"FIELED to delete student"}
+        return {"error": "FAILED to delete student"}
