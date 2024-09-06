@@ -52,7 +52,7 @@ async def add_student(student: Student):
         conn.close()
         return {"message": "Student added successfully"}
     except sqlite3.Error as e:
-        conn.close()
+        
         print(e)
         return {"error": "FAILED to add student"}
 
@@ -81,8 +81,3 @@ async def delete_student(student_id: int):
     except sqlite3.Error as e:
         print(e)
         return {"error": "FAILED to delete student"}
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
