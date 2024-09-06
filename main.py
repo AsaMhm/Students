@@ -52,6 +52,7 @@ async def add_student(student: Student):
         conn.close()
         return {"message": "Student added successfully"}
     except sqlite3.Error as e:
+        conn.close()
         print(e)
         return {"error": "FAILED to add student"}
 
