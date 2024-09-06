@@ -5,7 +5,7 @@ import sqlite3
 app = FastAPI()
 
 class Student(BaseModel):
-    id: int
+    id:int
     name: str
     grade: int
 
@@ -15,7 +15,7 @@ def setup_database():
         cursor = conn.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS students(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id INTEGER PRIMARY KEY ,
         name TEXT NOT NULL,
         grade INTEGER
         )
@@ -47,7 +47,7 @@ async def add_student(student: Student):
     try:
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO students (name, grade) VALUES (?, ?)", (student.name, student.grade))
+        cursor.execute("INSERT INTO students (id,name, grade) VALUES (?,?, ?)", (student.id,student.name, student.grade))
         conn.commit()
         conn.close()
         return {"message": "Student added successfully"}
