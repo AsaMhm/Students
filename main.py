@@ -1,11 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import sqlite3
+import logging
 
 app = FastAPI()
 
+logging.basicConfig(level=logging.INFO)
+
 class Student(BaseModel):
-    id:int
+    id: int
     name: str
     grade: int
 
@@ -15,7 +18,7 @@ def setup_database():
         cursor = conn.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS students(
-        id INTEGER PRIMARY KEY ,
+        id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         grade INTEGER
         )
@@ -23,9 +26,7 @@ def setup_database():
         conn.commit()
         conn.close()
     except sqlite3.Error as e:
-        print(e)
-        # Adjust this part as it is not returning from a FastAPI endpoint
-        return {"error": "FAILED to setup database"}
+        logging.error(f"Database setup failed: {e}")
 
 setup_database()
 
@@ -37,24 +38,26 @@ async def get_students():
         cursor.execute("SELECT * FROM students")
         students = cursor.fetchall()
         conn.close()
-        return students
+        return {"students": students}
     except sqlite3.Error as e:
-        print(e)
-        return {"error": "FAILED to fetch students"}
+        logging.error(f"Failed to fetch students: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch students")
 
 @app.post("/students")
 async def add_student(student: Student):
     try:
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO students (id,name, grade) VALUES (?,?, ?)", (student.id,student.name, student.grade))
+        cursor.execute("INSERT INTO students (id, name, grade) VALUES (?, ?, ?)", (student.id, student.name, student.grade))
         conn.commit()
         conn.close()
         return {"message": "Student added successfully"}
+    except sqlite3.IntegrityError:
+        logging.error("Student with this ID already exists.")
+        raise HTTPException(status_code=400, detail="Student with this ID already exists.")
     except sqlite3.Error as e:
-        
-        print(e)
-        return {"error": "FAILED to add student"}
+        logging.error(f"Failed to add student: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add student")
 
 @app.put("/students/{student_id}")
 async def update_student(student_id: int, student: Student):
@@ -62,12 +65,15 @@ async def update_student(student_id: int, student: Student):
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
         cursor.execute("UPDATE students SET name = ?, grade = ? WHERE id = ?", (student.name, student.grade, student_id))
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Student not found")
         conn.commit()
         conn.close()
         return {"message": "Student updated successfully"}
     except sqlite3.Error as e:
-        print(e)
-        return {"error": "FAILED to update student"}
+        logging.error(f"Failed to update student: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update student")
 
 @app.delete("/students/{student_id}")
 async def delete_student(student_id: int):
@@ -75,9 +81,12 @@ async def delete_student(student_id: int):
         conn = sqlite3.connect("students.db")
         cursor = conn.cursor()
         cursor.execute("DELETE FROM students WHERE id = ?", (student_id,))
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Student not found")
         conn.commit()
         conn.close()
         return {"message": "Student deleted successfully"}
     except sqlite3.Error as e:
-        print(e)
-        return {"error": "FAILED to delete student"}
+        logging.error(f"Failed to delete student: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete student")
