@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 annotated-types==0.7.0
 anyio==4.4.0
 click==8.1.7
@@ -12,3 +13,7 @@ starlette==0.38.4
 typing_extensions==4.12.2
 tzdata==2024.1
 uvicorn==0.30.6
+=======
+fastapi
+uvicorn
+>>>>>>> 28d38c397e7deaeb5ea7a1b9eaad08f462a90614

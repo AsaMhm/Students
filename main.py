@@ -82,6 +82,3 @@ async def delete_student(student_id: int):
         return {"error": "FAILED to delete student"}
 
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
