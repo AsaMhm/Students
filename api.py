@@ -5,7 +5,6 @@ import sqlite3
 app = FastAPI()
 
 class Student(BaseModel):
-    id: int
     name: str
     grade: int
 
@@ -53,8 +52,7 @@ async def add_student(student: Student):
         return {"message": "Student added successfully"}
     except sqlite3.Error as e:
         print(e)
-        return {"error": "FAILED to add student"}
-
+        raise HTTPException(status_code=500, detail=f"Failed to add student: {e}")
 @app.put("/students/{student_id}")
 async def update_student(student_id: int, student: Student):
     try:
