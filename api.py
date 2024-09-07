@@ -38,6 +38,9 @@ async def get_students():
         print(e)
         return {"error": "FAILED to fetch students"}
 
+
+
+
 @app.post("/students")
 async def add_student(student: Student):
     try:
@@ -53,3 +56,4 @@ async def add_student(student: Student):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
+
