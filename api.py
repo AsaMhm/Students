@@ -1,34 +1,30 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 import sqlite3
+from pydantic import BaseModel
 
 app = FastAPI()
 
 class Student(BaseModel):
     name: str
-    grade: int
+    grade: str
 
-def setup_database():
-    try:
-        conn = sqlite3.connect("students.db")
-        cursor = conn.cursor()
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS students(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+def create_table():
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
-        grade INTEGER
-        )
-        ''')
-        conn.commit()
-        conn.close()
-    except sqlite3.Error as e:
-        print(e)
-        # Adjust this part as it is not returning from a FastAPI endpoint
-        return {"error": "FAILED to setup database"}
+        grade TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    conn.close()
 
-setup_database()
-
+@app.on_event("startup")
+async def startup_event():
+    create_table()
+    
 @app.get("/students")
 async def get_students():
     try:
@@ -57,17 +53,3 @@ async def add_student(student: Student):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
-@app.delete("/students/{student_id}")
-async def delete_student(student_id: int):
-    try:
-        conn = sqlite3.connect("students.db")
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM students WHERE id = ?", (student_id,))
-        conn.commit()
-        conn.close()
-        return {"message": "Student deleted successfully"}
-    except sqlite3.Error as e:
-        print(e)
-        return {"error": "FAILED to delete student"}
-
-
