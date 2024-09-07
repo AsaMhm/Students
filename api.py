@@ -5,6 +5,7 @@ from pydantic import BaseModel
 app = FastAPI()
 
 class Student(BaseModel):
+    id:int
     name: str
     grade: str
 
