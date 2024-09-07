@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 import sqlite3
 
 app = FastAPI()
@@ -53,19 +54,9 @@ async def add_student(student: Student):
     except sqlite3.Error as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Failed to add student: {e}")
-@app.put("/students/{student_id}")
-async def update_student(student_id: int, student: Student):
-    try:
-        conn = sqlite3.connect("students.db")
-        cursor = conn.cursor()
-        cursor.execute("UPDATE students SET name = ?, grade = ? WHERE id = ?", (student.name, student.grade, student_id))
-        conn.commit()
-        conn.close()
-        return {"message": "Student updated successfully"}
-    except sqlite3.Error as e:
+    except Exception as e:
         print(e)
-        return {"error": "FAILED to update student"}
-
+        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {e}")
 @app.delete("/students/{student_id}")
 async def delete_student(student_id: int):
     try:
