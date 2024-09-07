@@ -1,18 +1,1 @@
--- إنشاء قاعدة البيانات
-CREATE DATABASE IF NOT EXISTS students_db;
-
--- استخدام قاعدة البيانات
-USE students_db;
-
--- إنشاء جدول الطلاب
-CREATE TABLE IF NOT EXISTS students (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    grade TEXT NOT NULL
-);
-
--- إدخال بيانات تجريبية
-INSERT INTO students (name, grade) VALUES ('Alice', 'A');
-INSERT INTO students (name, grade) VALUES ('Bob', 'B');
-INSERT INTO students (name, grade) VALUES ('Charlie', 'C');
 
